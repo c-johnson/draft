@@ -1,0 +1,40 @@
+- Initialize config
+  - cmd: "$ draft init"
+  - this whole thing needs to be built.  Taking advantage of this for now
+
+- Load config
+  - Query S3, load manifest.json as []Manifest object, 
+
+- List config
+  - cmd: "$ draft ls"
+  - output:  A list of available drafts
+  - details:
+    - (optional) -p, only list public drafts
+    
+- Add a draft to the config
+  - cmd: "$ draft add <shortname>"
+  - output:  A success / failure note
+  - details:  
+    - finds drafts in $DRAFT_DIR
+    - for now, just those with .md file extension
+    - one found, copies the draft to S3
+      - S3 is canonical copy -- ignore local draft dir (for now)
+
+- Make a draft public
+  - cmd: "$ draft pub <shortname>"
+  - output:  Details of the draft
+
+- Generate html files based off of manifest
+  - cmd: "$ draft gen"
+  - output: 
+    (console) Success / failure, list of files generated
+    (s3) All html output should be stored in an S3 directory.  More on this later
+  - details:
+    - this is assuming generation is idempotent, IE, there is no post-generation of HTML files, else those will be wiped out upon every "gen"
+    - (optional) can specify an optional shortname, if you want to just do one
+    - (optional) store a checksum of each draft's contents inside the manifest file.  Only generate new html is the checksums do not match, IE, if the drafts have changed.
+
+(chome)
+  - Make blog posts dynamic, querying S3, displaying that html on the site
+  - probably more stuff to do here
+  - (optional) cache html content somewhere
