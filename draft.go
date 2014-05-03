@@ -5,7 +5,6 @@ import (
 	"flag"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 
 	"github.com/bradfitz/camlistore/pkg/misc/amazon/s3"
@@ -65,16 +64,7 @@ func initialize() {
 	conf = Config{}
 	decoder.Decode(&conf)
 
-	client = &s3.Client{
-		Auth: &s3.Auth{
-			AccessKey:       conf.S3_access_key,
-			SecretAccessKey: conf.S3_secret_access_key,
-			Hostname:        conf.S3_hostname,
-		},
-		HTTPClient: http.DefaultClient,
-	}
-
-	readCloser, _, err := client.Get("cjohnsonstore", "draft/manifest.json")
+	readCloser, err := GetManifest(conf)
 
 	if err != nil {
 		logxit(err)
