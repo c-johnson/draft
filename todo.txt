@@ -10,7 +10,13 @@
   - output:  A list of available drafts
   - details:
     - (optional) -p, only list public drafts
-    
+
+==DONE!==
+
+- Functions to save Manifest to server, Read manifest from server
+  - x Read
+  - Save
+
 - Add a draft to the config
   - cmd: "$ draft add <shortname>"
   - output:  A success / failure note

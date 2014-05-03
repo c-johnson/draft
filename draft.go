@@ -3,20 +3,17 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 
 	"github.com/bradfitz/camlistore/pkg/misc/amazon/s3"
-	"github.com/davecgh/go-spew/spew"
-	"github.com/kr/pretty"
 )
 
 var ip int
 var cmd string
+var args []string
 var conf Config
 var manifest []Post
 var client *s3.Client
@@ -36,10 +33,9 @@ func parseArgs() {
 	flag.Parse()
 
 	// Parse arguments
-	args := flag.Args()
+	args = flag.Args()
 	if len(args) == 0 {
-		fmt.Println("You need an argument!")
-		return
+		exit("You need an argument!")
 	}
 
 	// Set command
@@ -53,25 +49,17 @@ func runCmd() {
 	case "add":
 		addPost()
 	default:
-		fmt.Printf("The command \"%s\" doesn't exist.\n", cmd)
+		exit("The command you wrote doesn't exist.")
 	}
 }
 
-func p(key string, obj interface{}) {
-	fmt.Printf("%s: %#v", key, obj)
-}
-
-func pp(key string, obj interface{}) {
-	pretty.Printf("%s: %# v", key, pretty.Formatter(obj))
-}
-
-func ps(key string, obj interface{}) {
-	// spew.Printf("%s: %# v", key, pretty.Formatter(obj))
-	spew.Dump(obj)
-}
-
 func initialize() {
-	file, _ := os.Open("conf.json")
+	file, err := os.Open("conf.json")
+
+	if err != nil {
+		exit("There is no conf.json file in your local directory.")
+	}
+
 	decoder := json.NewDecoder(file)
 
 	conf = Config{}
@@ -89,11 +77,9 @@ func initialize() {
 	readCloser, _, err := client.Get("cjohnsonstore", "draft/manifest.json")
 
 	if err != nil {
-		log.Fatal(err)
+		logxit(err)
 	} else {
 		manifest, err = BuildManifest(readCloser)
-
-		// pp("manifegst", manifest)
 	}
 }
 
@@ -102,49 +88,10 @@ func BuildManifest(buf io.ReadCloser) ([]Post, error) {
 
 	manifestBytes, err := ioutil.ReadAll(buf)
 	if err != nil {
-		log.Fatal(err)
+		logxit(err)
 	} else {
 		err = json.Unmarshal(manifestBytes, &posts)
 	}
 
 	return posts, err
 }
-
-func flags() {
-
-}
-
-func arguments() {
-
-}
-
-func command() {
-
-}
-
-func listPosts() {
-	fmt.Println("Listing your drafts...")
-
-	if len(manifest) > 0 {
-		ps("manifest", manifest)
-	} else {
-		fmt.Println("No drafts yet!")
-	}
-}
-
-func addPost() {
-	fmt.Println("Adding a post!")
-}
-
-// func sync() {
-// 	fmt.Printf("Syncing...\n")
-
-// 	buckets, err := client.Buckets()
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	fmt.Printf("Buckets are %s\n", &buckets)
-
-// 	client.PutObject("test", "cjohnsonstore", nil, size, body)
-// }
