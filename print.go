@@ -13,6 +13,10 @@ func p(key string, obj interface{}) {
 	fmt.Printf("%s: %#v\n", key, obj)
 }
 
+func pf(str string, vars ...interface{}) {
+	fmt.Printf("str", vars)
+}
+
 func pln(str string) {
 	fmt.Println(str)
 }
@@ -21,7 +25,7 @@ func pp(key string, obj interface{}) {
 	pretty.Printf("%s: %# v", key, pretty.Formatter(obj))
 }
 
-func ps(key string, obj interface{}) {
+func ps(obj interface{}) {
 	spew.Dump(obj)
 }
 

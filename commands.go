@@ -4,7 +4,7 @@ func listPosts() {
 	pln("Listing your drafts...")
 
 	if len(manifest) > 0 {
-		ps("manifest", manifest)
+		ps(manifest)
 	} else {
 		pln("No drafts yet!")
 	}
@@ -14,7 +14,14 @@ func addPost() {
 	pln("Adding a post!")
 
 	if len(args) > 1 {
-		p("Shortname is", args[1])
+		shortname := args[1]
+		found, post := manifest.Find(shortname)
+		if found {
+			exit("Shit already exists!")
+		} else {
+			ps(post)
+		}
+
 	} else {
 		pln("You need an argument for the \"add\" command.")
 	}

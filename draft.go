@@ -15,7 +15,7 @@ var ip int
 var cmd string
 var args []string
 var conf Config
-var manifest []Post
+var manifest Manifest
 var client *s3.Client
 var DRAFT_DIR = os.Getenv("DRAFT_DIR") // Directory containing blog posts
 
