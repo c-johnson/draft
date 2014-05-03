@@ -15,7 +15,7 @@ var cmd string
 var args []string
 var conf Config
 var manifest Manifest
-var client *s3.Client
+var s3_client *s3.Client
 var DRAFT_DIR = os.Getenv("DRAFT_DIR") // Directory containing blog posts
 
 func main() {
@@ -64,7 +64,7 @@ func initialize() {
 	conf = Config{}
 	decoder.Decode(&conf)
 
-	readCloser, err := GetManifest(conf)
+	readCloser, err := GetManifest()
 
 	if err != nil {
 		logxit(err)
