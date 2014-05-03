@@ -29,3 +29,15 @@ func (m Manifest) Find(shortname string) (bool, Post) {
 	}
 	return false, Post{}
 }
+
+func (m Manifest) Add(shortname string) (bool, Post) {
+	found, post := m.Find(shortname)
+	if found {
+		return false, post
+	}
+
+	newpost := Post{Shortname: shortname}
+	_ = append(m, newpost)
+
+	return true, newpost
+}
