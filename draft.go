@@ -35,7 +35,7 @@ func parseArgs() {
 	// Parse arguments
 	args = flag.Args()
 	if len(args) == 0 {
-		exit("You need an argument!")
+		exit("You need an argument!!")
 	}
 
 	// Set command
