@@ -17,11 +17,13 @@ func addPost() {
 		shortname := args[1]
 		found, post := manifest.Find(shortname)
 		if found {
-			exit("Shit already exists!")
+			exit("It already exists!")
 			ps(post)
 		} else {
-			success, post := manifest.Add(shortname)
-			if success {
+			err, post := manifest.Add(shortname)
+			if err != nil {
+				exit(err.Error())
+			} else {
 				pln("Successfully added the item!")
 				ps(post)
 				exit("")

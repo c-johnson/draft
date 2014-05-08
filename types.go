@@ -1,12 +1,17 @@
 package main
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 type Config struct {
 	S3_access_key        string
 	S3_secret_access_key string
 	S3_hostname          string
 }
+
+type Manifest []Post
 
 type Post struct {
 	Title       string
@@ -19,8 +24,6 @@ type Post struct {
 	Tags        []string
 }
 
-type Manifest []Post
-
 func (m Manifest) Find(shortname string) (bool, Post) {
 	for _, post := range m {
 		if post.Shortname == shortname {
@@ -30,14 +33,14 @@ func (m Manifest) Find(shortname string) (bool, Post) {
 	return false, Post{}
 }
 
-func (m Manifest) Add(shortname string) (bool, Post) {
+func (m Manifest) Add(shortname string) (error, Post) {
 	found, post := m.Find(shortname)
 	if found {
-		return false, post
+		return errors.New("Post already exists"), post
 	}
 
 	newpost := Post{Shortname: shortname}
 	_ = append(m, newpost)
 
-	return true, newpost
+	return nil, newpost
 }
