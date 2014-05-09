@@ -24,8 +24,8 @@ type Post struct {
 	Tags        []string
 }
 
-func (m Manifest) Find(shortname string) (bool, Post) {
-	for _, post := range m {
+func (m *Manifest) Find(shortname string) (bool, Post) {
+	for _, post := range *m {
 		if post.Shortname == shortname {
 			return true, post
 		}
@@ -33,14 +33,19 @@ func (m Manifest) Find(shortname string) (bool, Post) {
 	return false, Post{}
 }
 
-func (m Manifest) Add(shortname string) (error, Post) {
+func (m *Manifest) Add(shortname string) (error, Post) {
 	found, post := m.Find(shortname)
 	if found {
 		return errors.New("Post already exists"), post
 	}
 
 	newpost := Post{Shortname: shortname}
-	_ = append(m, newpost)
+	*m = append(*m, newpost)
+	// listPosts()
+	ps(m)
+	pln("===")
+	ps(newpost)
+	pln("This is here")
 
 	return nil, newpost
 }

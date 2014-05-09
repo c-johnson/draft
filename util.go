@@ -1,13 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/kr/pretty"
 )
+
+/* Print debugging statements */
 
 func p(key string, obj interface{}) {
 	fmt.Printf("%s: %#v\n", key, obj)
@@ -28,6 +32,16 @@ func pp(key string, obj interface{}) {
 func ps(obj interface{}) {
 	spew.Dump(obj)
 }
+
+/* Type converstion */
+
+func readerToString(reader io.Reader) string {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(reader)
+	return buf.String()
+}
+
+/* Program exit and logging */
 
 func exit(msg string) {
 	pln(msg)

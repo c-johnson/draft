@@ -11,7 +11,7 @@ import (
 	"github.com/bradfitz/camlistore/pkg/misc/amazon/s3"
 )
 
-func InitS3Client() {
+func initS3Client(conf Config) {
 	if s3_client == nil && &conf != nil {
 		s3_client = &s3.Client{
 			Auth: &s3.Auth{
@@ -24,22 +24,24 @@ func InitS3Client() {
 	}
 }
 
-func GetManifest() (io.ReadCloser, error) {
-	InitS3Client()
-	readCloser, _, err := s3_client.Get("cjohnsonstore", "draft/manifest.json")
+func GetManifest(conf Config) (io.ReadCloser, error) {
+	initS3Client(conf)
+	readCloser, _, err := s3_client.Get("cjohnsonstore", "draft/manifest2.json")
 	return readCloser, err
 }
 
-func WriteManifest() error {
-	InitS3Client()
+func WriteManifest(conf Config, manifest Manifest) error {
+	initS3Client(conf)
 
-	b, err := json.Marshal(manifest)
+	manifestStr, err := json.Marshal(manifest)
+
+	pln(string(manifestStr))
 
 	if err != nil {
 		return err
 	}
 
-	err = WriteS3(string(b))
+	err = writeS3(string(manifestStr))
 	if err != nil {
 		return err
 	}
@@ -47,7 +49,7 @@ func WriteManifest() error {
 	return nil
 }
 
-func WriteS3(str string) error {
+func writeS3(str string) error {
 	var buf bytes.Buffer
 	reader := strings.NewReader(str)
 	md5h := md5.New()
@@ -56,6 +58,8 @@ func WriteS3(str string) error {
 	if err != nil {
 		return err
 	}
+
+	pln(readerToString(reader))
 
 	err = s3_client.PutObject("draft/manifest2.json", "cjohnsonstore", md5h, size, &buf)
 	if err != nil {

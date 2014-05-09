@@ -46,7 +46,16 @@ func runCmd() {
 	case "ls":
 		listPosts()
 	case "add":
-		addPost()
+		if len(args) <= 1 {
+			pln("You need an argument for the \"add\" command.")
+		} else {
+			addPost(args[1])
+		}
+	case "test":
+		addPost("jimmy")
+		addPost("loves")
+		addPost("toast")
+		listPosts()
 	default:
 		exit("The command you wrote doesn't exist.")
 	}
@@ -64,7 +73,7 @@ func initialize() {
 	conf = Config{}
 	decoder.Decode(&conf)
 
-	readCloser, err := GetManifest()
+	readCloser, err := GetManifest(conf)
 
 	if err != nil {
 		logxit(err)
