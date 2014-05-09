@@ -9,6 +9,8 @@ type Config struct {
 	S3_access_key        string
 	S3_secret_access_key string
 	S3_hostname          string
+	S3_bucket            string
+	S3_manifest          string
 }
 
 type Manifest []Post

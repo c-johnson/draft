@@ -45,17 +45,16 @@ func runCmd() {
 	switch cmd {
 	case "ls":
 		listPosts()
+	case "sync":
+		sync()
+	case "test":
+		test()
 	case "add":
 		if len(args) <= 1 {
 			pln("You need an argument for the \"add\" command.")
 		} else {
 			addPost(args[1])
 		}
-	case "test":
-		addPost("jimmy")
-		addPost("loves")
-		addPost("toast")
-		listPosts()
 	default:
 		exit("The command you wrote doesn't exist.")
 	}

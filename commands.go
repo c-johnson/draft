@@ -1,8 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
+	"path"
+	"strings"
 )
 
 func listPosts() {
@@ -42,26 +44,42 @@ func sync() {
 		exit("You need to set your $DRAFT_DIR variable to point to your drafts folder")
 	}
 
-	draftDir, err := os.Open(DRAFT_DIR) // For read access.
+	files, err := filesFromDirString(DRAFT_DIR)
+
 	if err != nil {
-		logxit(err)
-	}
+		log.Fatal(nil)
+	} else {
+		for _, file := range files {
+			if file.IsDir() {
+				// Do nothing
+			} else {
+				fragments := strings.Split(file.Name(), ".")
+				shortname := fragments[0]
 
-	files, err := draftDir.Readdir(0)
-	if err != nil {
-		logxit(err)
-	}
+				inManifest, _ := manifest.Find(shortname)
 
-	for _, file := range files {
-		if file.IsDir() {
-			// Do nothing
-		} else {
-
-			pln("name = " + file.Name())
+				if inManifest {
+					fullpath := path.Join(DRAFT_DIR, file.Name())
+					err = WriteFile(fullpath, conf)
+					if err != nil {
+						log.Fatal(err)
+					}
+				}
+			}
 		}
 	}
+}
 
-	pln("names = !")
-	fmt.Printf("how many files? = %v", len(files))
-	// ps(names)
+func filesFromDirString(str string) ([]os.FileInfo, error) {
+	draftDir, err := os.Open(DRAFT_DIR) // For read access.
+	var files []os.FileInfo
+	if err == nil {
+		files, err = draftDir.Readdir(0)
+	}
+
+	return files, err
+}
+
+func test() {
+	sync()
 }

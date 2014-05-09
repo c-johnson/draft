@@ -13,12 +13,12 @@ import (
 
 /* Print debugging statements */
 
-func p(key string, obj interface{}) {
-	fmt.Printf("%s: %#v\n", key, obj)
+func p(str string, vars interface{}) {
+	fmt.Printf(str+": %v \n", vars)
 }
 
 func pf(str string, vars ...interface{}) {
-	fmt.Printf("str", vars)
+	fmt.Printf(str+"\n", vars)
 }
 
 func pln(str string) {

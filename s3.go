@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -26,7 +27,7 @@ func initS3Client(conf Config) {
 
 func GetManifest(conf Config) (io.ReadCloser, error) {
 	initS3Client(conf)
-	readCloser, _, err := s3_client.Get("cjohnsonstore", "draft/manifest2.json")
+	readCloser, _, err := s3_client.Get(conf.S3_bucket, conf.S3_manifest)
 	return readCloser, err
 }
 
@@ -41,7 +42,7 @@ func WriteManifest(conf Config, manifest Manifest) error {
 		return err
 	}
 
-	err = writeS3(string(manifestStr))
+	err = writeS3(conf.S3_bucket, conf.S3_manifest, string(manifestStr))
 	if err != nil {
 		return err
 	}
@@ -49,9 +50,21 @@ func WriteManifest(conf Config, manifest Manifest) error {
 	return nil
 }
 
-func writeS3(str string) error {
+func WriteFile(fullpath string, conf Config) error {
+	contents, err := ioutil.ReadFile(fullpath)
+	if err != nil {
+		return err
+	}
+
+	tokens := strings.Split(fullpath, "/")
+	shortname := tokens[len(tokens)-1]
+
+	return writeS3(conf.S3_bucket, "draft/drafts/"+shortname, string(contents))
+}
+
+func writeS3(bucket string, key string, content string) error {
 	var buf bytes.Buffer
-	reader := strings.NewReader(str)
+	reader := strings.NewReader(content)
 	md5h := md5.New()
 
 	size, err := io.Copy(io.MultiWriter(&buf, md5h), reader)
@@ -61,7 +74,7 @@ func writeS3(str string) error {
 
 	pln(readerToString(reader))
 
-	err = s3_client.PutObject("draft/manifest2.json", "cjohnsonstore", md5h, size, &buf)
+	err = s3_client.PutObject(key, bucket, md5h, size, &buf)
 	if err != nil {
 		return err
 	}
