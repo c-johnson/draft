@@ -1,10 +1,13 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/russross/blackfriday"
 )
 
 func listPosts() {
@@ -47,31 +50,43 @@ func sync() {
 	files, err := filesFromDirString(DRAFT_DIR)
 
 	if err != nil {
-		log.Fatal(nil)
-	} else {
-		for _, file := range files {
-			if file.IsDir() {
-				// Do nothing
-			} else {
-				fragments := strings.Split(file.Name(), ".")
-				shortname := fragments[0]
+		log.Fatal(err)
+	}
 
-				inManifest, _ := manifest.Find(shortname)
+	for _, file := range files {
+		if file.IsDir() {
+			// Do nothing
+		} else {
+			fragments := strings.Split(file.Name(), ".")
+			shortname := fragments[0]
 
-				if inManifest {
-					fullpath := path.Join(DRAFT_DIR, file.Name())
-					err = WriteFile(fullpath, conf)
-					if err != nil {
-						log.Fatal(err)
-					}
+			inManifest, _ := manifest.Find(shortname)
+
+			if inManifest {
+				fullpath := path.Join(DRAFT_DIR, file.Name())
+				err = WriteDraft(fullpath, conf.S3_bucket)
+				if err != nil {
+					log.Fatal(err)
 				}
 			}
 		}
 	}
 }
 
+func generate() {
+	for _, post := range manifest {
+		draft, err := GetDraft(post.Shortname, conf.S3_bucket)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		postBytes := blackfriday.MarkdownBasic([]byte(draft))
+		ioutil.WriteFile(post.Shortname+".html", postBytes, 0644)
+	}
+}
+
 func filesFromDirString(str string) ([]os.FileInfo, error) {
-	draftDir, err := os.Open(DRAFT_DIR) // For read access.
+	draftDir, err := os.Open(str) // For read access.
 	var files []os.FileInfo
 	if err == nil {
 		files, err = draftDir.Readdir(0)

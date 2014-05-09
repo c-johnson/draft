@@ -5,20 +5,24 @@ import (
 	"flag"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/bradfitz/camlistore/pkg/misc/amazon/s3"
 )
 
-var ip int
+var conf Config
+
 var cmd string
 var args []string
-var conf Config
+
 var manifest Manifest
 var s3_client *s3.Client
 var DRAFT_DIR = os.Getenv("DRAFT_DIR") // Directory containing blog posts
 
 func main() {
+	loadConfig()
+
 	initialize()
 
 	parseArgs()
@@ -26,9 +30,39 @@ func main() {
 	runCmd()
 }
 
+func loadConfig() {
+	file, err := os.Open("conf.json")
+
+	if err != nil {
+		exit("There is no conf.json file in your local directory.")
+	}
+
+	decoder := json.NewDecoder(file)
+
+	conf = Config{}
+	err = decoder.Decode(&conf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if DRAFT_DIR == "" {
+		exit("You need a $DRAFT_DIR variable!  See the readme.md for details")
+	}
+}
+
+func initialize() {
+	readCloser, err := GetManifest(conf)
+
+	if err != nil {
+		logxit(err)
+	} else {
+		manifest, err = BuildManifest(readCloser)
+	}
+}
+
 func parseArgs() {
 	// Parse flags
-	flag.IntVar(&ip, "ip", 1234, "some dummy flag")
+	// flag.IntVar(&ip, "ip", 1234, "some dummy flag")
 	flag.Parse()
 
 	// Parse arguments
@@ -55,29 +89,10 @@ func runCmd() {
 		} else {
 			addPost(args[1])
 		}
+	case "generate":
+		generate()
 	default:
 		exit("The command you wrote doesn't exist.")
-	}
-}
-
-func initialize() {
-	file, err := os.Open("conf.json")
-
-	if err != nil {
-		exit("There is no conf.json file in your local directory.")
-	}
-
-	decoder := json.NewDecoder(file)
-
-	conf = Config{}
-	decoder.Decode(&conf)
-
-	readCloser, err := GetManifest(conf)
-
-	if err != nil {
-		logxit(err)
-	} else {
-		manifest, err = BuildManifest(readCloser)
 	}
 }
 

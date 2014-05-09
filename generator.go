@@ -1,5 +1,11 @@
 package main
 
+// func GenerateHTML() {
+// 	for i, post := range manifest {
+
+// 	}
+// }
+
 /*
 	This is all just reference stuff
 */

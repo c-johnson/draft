@@ -12,6 +12,10 @@ import (
 	"github.com/bradfitz/camlistore/pkg/misc/amazon/s3"
 )
 
+type draftS3 struct {
+	conf Config
+}
+
 func initS3Client(conf Config) {
 	if s3_client == nil && &conf != nil {
 		s3_client = &s3.Client{
@@ -27,8 +31,7 @@ func initS3Client(conf Config) {
 
 func GetManifest(conf Config) (io.ReadCloser, error) {
 	initS3Client(conf)
-	readCloser, _, err := s3_client.Get(conf.S3_bucket, conf.S3_manifest)
-	return readCloser, err
+	return ReadS3(conf.S3_bucket, conf.S3_manifest)
 }
 
 func WriteManifest(conf Config, manifest Manifest) error {
@@ -42,7 +45,7 @@ func WriteManifest(conf Config, manifest Manifest) error {
 		return err
 	}
 
-	err = writeS3(conf.S3_bucket, conf.S3_manifest, string(manifestStr))
+	err = WriteS3(conf.S3_bucket, conf.S3_manifest, string(manifestStr))
 	if err != nil {
 		return err
 	}
@@ -50,7 +53,7 @@ func WriteManifest(conf Config, manifest Manifest) error {
 	return nil
 }
 
-func WriteFile(fullpath string, conf Config) error {
+func WriteDraft(fullpath string, bucket string) error {
 	contents, err := ioutil.ReadFile(fullpath)
 	if err != nil {
 		return err
@@ -59,10 +62,15 @@ func WriteFile(fullpath string, conf Config) error {
 	tokens := strings.Split(fullpath, "/")
 	shortname := tokens[len(tokens)-1]
 
-	return writeS3(conf.S3_bucket, "draft/drafts/"+shortname, string(contents))
+	return WriteS3(bucket, "draft/drafts/"+shortname, string(contents))
 }
 
-func writeS3(bucket string, key string, content string) error {
+func GetDraft(shortname string, bucket string) (string, error) {
+	rc, err := ReadS3(bucket, "draft/drafts/"+shortname)
+	return readerToString(rc), err
+}
+
+func WriteS3(bucket string, key string, content string) error {
 	var buf bytes.Buffer
 	reader := strings.NewReader(content)
 	md5h := md5.New()
@@ -72,12 +80,15 @@ func writeS3(bucket string, key string, content string) error {
 		return err
 	}
 
-	pln(readerToString(reader))
-
 	err = s3_client.PutObject(key, bucket, md5h, size, &buf)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func ReadS3(bucket string, key string) (io.ReadCloser, error) {
+	readCloser, _, err := s3_client.Get(bucket, key)
+	return readCloser, err
 }
